@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "command": "npm",
+    "tasks": [
+        {
+            "label": "serve",
+            "type": "npm",
+            "isBackground": true,
+            "script": "dev",
+            "problemMatcher": {
+                "pattern": [
+                    {
+                        "regexp": ".",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                    }
+                ],
+                "background": {
+                    "beginsPattern": "local:   http://localhost:3000",
+                    "endsPattern": ".",
+                }
+            }
+        },
+        {
+            "label": "end serve",
+            "type": "process",
+            "command": [
+                "${command:workbench.action.tasks.terminate}",
+                "${command:workbench.action.acceptSelectedQuickOpenItem}",
+            ],
+        },
+    ]
+}

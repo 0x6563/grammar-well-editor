@@ -1,23 +1,36 @@
 {
-  "name": "svelte-app",
-  "version": "1.0.0",
-  "private": true,
+  "name": "site",
+  "version": "0.0.1",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "start": "sirv public --no-clear"
+    "start": "node ./index.js",
+    "dev": "svelte-kit dev",
+    "build": "svelte-kit build",
+    "preview": "svelte-kit preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
+    "lint": "eslint --ignore-path .gitignore ."
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.0.0",
-    "rollup": "^2.3.4",
-    "rollup-plugin-css-only": "^3.1.0",
-    "rollup-plugin-livereload": "^2.0.0",
-    "rollup-plugin-svelte": "^7.0.0",
-    "rollup-plugin-terser": "^7.0.0",
-    "svelte": "^3.0.0"
+    "@rollup/plugin-json": "^4.1.0",
+    "@sveltejs/adapter-static": "^1.0.0-next.24",
+    "@sveltejs/kit": "^1.0.0-next.326",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "axios": "^0.24.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-svelte3": "^3.3.0",
+    "node-sass": "^6.0.1",
+    "sass": "^1.46.0",
+    "svelte-check": "^2.2.11",
+    "svelte-preprocess": "^4.10.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.4"
   },
+  "type": "module",
   "dependencies": {
-    "sirv-cli": "^2.0.0"
+    "grammar-well": "github:0x6563/grammar-well",
+    "monaco-editor": "^0.33.0",
+    "nearley": "^2.20.1",
+    "svelte": "^3.48.0"
   }
 }
