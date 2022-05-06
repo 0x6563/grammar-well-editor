@@ -9,6 +9,7 @@ const config = {
     preprocess: preprocess(),
     kit: {
         paths: { assets: "", base: "/grammar-well-editor" },
+        trailingSlash: 'always',
         adapter: adapter({
             // default options are shown
             pages: 'docs',

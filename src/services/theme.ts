@@ -1,7 +1,10 @@
 import { writable } from 'svelte/store';
 
 function getStyle(querySelector: string, style: string) {
-    return window.getComputedStyle(document.querySelector(querySelector)).getPropertyValue(style);
+    const node = document.querySelector(querySelector);
+    if (!node)
+        return '';
+    return window.getComputedStyle(node).getPropertyValue(style);
 }
 
 export const GetStyle = typeof window != 'undefined' ? getStyle : (querySelector: string, style: string) => '';
