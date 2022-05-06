@@ -8,11 +8,12 @@ const config = {
     // for more information about preprocessors
     preprocess: preprocess(),
     kit: {
+        paths: { assets: "", base: "/grammar-well-editor" },
         adapter: adapter({
             // default options are shown
-            pages: 'build',
-            assets: 'build',
-            fallback: null
+            pages: 'docs',
+            assets: 'docs',
+            fallback: 'index.html'
         }),
         vite: {
             config: {
