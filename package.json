@@ -31,6 +31,7 @@
     "grammar-well": "github:0x6563/grammar-well",
     "monaco-editor": "^0.33.0",
     "nearley": "^2.20.1",
+    "rxjs": "^7.5.5",
     "svelte": "^3.48.0"
   }
 }

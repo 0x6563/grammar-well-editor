@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+    import { debounceTime, Subject } from 'rxjs';
     import Code from '@components/code.svelte';
     import Tree from '@components/tree.svelte';
     import gM from '@services/grammar.ne?raw';
@@ -11,8 +12,7 @@
     let grammar = gM;
     let error = '';
     let errorType = '';
-    let input = 
-`require("INC_Class.lua")
+    let input = `require("INC_Class.lua")
 
 cAnimal=setclass("Animal")
 
@@ -21,29 +21,40 @@ function cAnimal.methods:init(action, cutename)
 	self.supercutename = cutename
 end`;
     let result;
+    let viewport: HTMLElement;
     let grammarResizer;
     let inputResizer;
     let tester;
     let showTree: boolean = false;
     let treeData: any;
+    const sub = new Subject<void>();
 
     function Run() {
-        tester.postMessage({ grammar, input });
+        viewport?.classList.add('pending');
+        sub.next();
     }
 
     onMount(() => {
         tester = tester || new TestGrammar();
         tester.addEventListener('message', (r) => {
+            viewport?.classList.remove('pending');
             const { data } = r;
-            error = data.error || '';
-            result = data.result;
-            console.log(error);
-            try {
-                treeData = TraverseObject(data.result);
-            } catch (e) {
-                treeData = null;
+            error = '';
+            result = '';
+            if (data.error) {
+                console.log(data.error)
+                error = `Error: ` + JSON.stringify(data.error);
+            }
+            if (data.result) {
+                result = data.result;
+                try {
+                    treeData = TraverseObject(data.result);
+                } catch (e) {
+                    treeData = null;
+                }
             }
         });
+        sub.pipe(debounceTime(2000)).subscribe(() => tester.postMessage({ grammar, input }));
         Run();
     });
 
@@ -69,13 +80,16 @@ end`;
         }
         return o;
     }
+
     function loadGrammar(e) {
         grammarResizer = e.detail.resize;
     }
+
     function loadInput(e) {
         console.log(e);
         inputResizer = e.detail.resize;
     }
+
     function resize() {
         inputResizer();
         grammarResizer();
@@ -85,7 +99,7 @@ end`;
 <SplitView on:resize={resize}>
     <Code slot="left" language="nearley" bind:value={grammar} width="fill" height="fill" on:edit={Run} on:load={loadGrammar} />
     <Code slot="right" language="nearley" bind:value={input} width="fill" height="fill" on:edit={Run} on:load={loadInput} />
-    <div slot="bottom" class="viewport">
+    <div bind:this={viewport} slot="bottom" class="viewport">
         {#if !error}
             {#if treeData}
                 <button class="material-icons text secondary" on:click={() => (showTree = false)}>data_object</button>
@@ -112,5 +126,11 @@ end`;
         width: 100%;
         height: 100%;
         overflow: auto;
+        opacity: 1;
+        transition: all 2s;
+
+        &:global(.pending) {
+            opacity: .5;
+        }
     }
 </style>
