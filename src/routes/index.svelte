@@ -24,39 +24,47 @@ end`;
     let viewport: HTMLElement;
     let grammarResizer;
     let inputResizer;
-    let tester;
     let showTree: boolean = false;
     let treeData: any;
+    let lastrun = 0;
     const sub = new Subject<void>();
 
-    function Run() {
+    function OnUpdate() {
         viewport?.classList.add('pending');
         sub.next();
     }
 
     onMount(() => {
-        tester = tester || new TestGrammar();
+        sub.pipe(debounceTime(2000)).subscribe(() => RunGrammar());
+        OnUpdate();
+    });
+
+    function RunGrammar() {
+        const timestamp = Date.now();
+        lastrun = timestamp;
+        const tester = new TestGrammar();
         tester.addEventListener('message', (r) => {
-            viewport?.classList.remove('pending');
-            const { data } = r;
-            error = '';
-            result = '';
-            if (data.error) {
-                console.log(data.error)
-                error = `Error: ` + JSON.stringify(data.error);
-            }
-            if (data.result) {
-                result = data.result;
-                try {
-                    treeData = TraverseObject(data.result);
-                } catch (e) {
-                    treeData = null;
+            if (lastrun == timestamp) {
+                viewport?.classList.remove('pending');
+                const { data } = r;
+                error = '';
+                result = '';
+                if (data.error) {
+                    error = `Error: ` + JSON.stringify(data.error);
+                }
+                if (data.result) {
+                    result = data.result;
+                    try {
+                        treeData = TraverseObject(data.result);
+                    } catch (e) {
+                        treeData = null;
+                    }
                 }
             }
+            tester.terminate();
         });
-        sub.pipe(debounceTime(2000)).subscribe(() => tester.postMessage({ grammar, input }));
-        Run();
-    });
+        tester.postMessage({ grammar, input });
+    }
 
     function TraverseObject({ name, data }) {
         const o = { name, data: [] };
@@ -97,8 +105,8 @@ end`;
 </script>
 
 <SplitView on:resize={resize}>
-    <Code slot="left" language="nearley" bind:value={grammar} width="fill" height="fill" on:edit={Run} on:load={loadGrammar} />
-    <Code slot="right" language="nearley" bind:value={input} width="fill" height="fill" on:edit={Run} on:load={loadInput} />
+    <Code slot="left" language="nearley" bind:value={grammar} width="fill" height="fill" on:edit={OnUpdate} on:load={loadGrammar} />
+    <Code slot="right" language="nearley" bind:value={input} width="fill" height="fill" on:edit={OnUpdate} on:load={loadInput} />
     <div bind:this={viewport} slot="bottom" class="viewport">
         {#if !error}
             {#if treeData}
@@ -130,7 +138,7 @@ end`;
         transition: all 2s;
 
         &:global(.pending) {
-            opacity: .5;
+            opacity: 0.5;
         }
     }
 </style>
