@@ -126,4 +126,8 @@
 
 <svg bind:this={element} />
 
-<style lang="scss"></style>
+<style lang="scss">
+    svg {
+        background: var(--background);
+    }
+</style>

@@ -1,0 +1,48 @@
+lexer: {{
+    start: "json"
+
+    json ->
+        - when: /\s+/ tag: "space"
+        - when: /-?(?:[0-9]|[1-9][0-9]+)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\b/ tag: "number"
+        - when: /"(?:\\["bfnrt\/\\]|\\u[a-fA-F0-9]{4}|[^"\\])*"/ 
+            tag: "string"
+            highlight: "string"
+        - when: "{" tag: "{"
+        - when: "}" tag: "}"
+        - when: "[" tag: "["
+        - when: "]" tag: "]"
+        - when: "," tag: ","
+        - when: ":" tag: ":"
+        - when: "true" tag: "true"
+        - when: "false" tag: "false"
+        - when: "null" tag: "null"
+}}
+
+grammar: {{
+    json : ${ (d) => d } -> _ (object | array) _ 
+
+    object : ${ (d) => d } -> "{" _ "}" 
+        | "{" _ pair (_ "," _ pair)* _ "}" 
+
+    array : ${ (d) => d } -> "[" _ "]" 
+        | "[" _ value (_ "," _ value)* _ "]"  
+
+    value : ${ (d) => d } ->
+        object
+        | array
+        | number
+        | string
+        | "true"
+        | "false"
+        | "null"
+
+    number : ${ (d) => d } -> $number
+
+    string : ${ (d) => d } -> $string
+
+    pair : ${ (d) => d } -> key:k _ ":" _ value:v
+
+    key : ${ (d) => d } -> string
+
+    _ : ${ (d) => d } -> $space?
+}}

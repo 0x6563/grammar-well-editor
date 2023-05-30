@@ -4,8 +4,7 @@ body {
     margin: 0;
     height: 100%;
     width: 100%;
-    font-family: 'Source Sans Pro', sans-serif;
-
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 
@@ -17,6 +16,8 @@ body {
     overflow: hidden;
     background: var(--background);
     color: var(--basic);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
     --code: "Source Sans Pro";
 
     .mark {
@@ -173,42 +174,6 @@ body {
         }
     }
 
-    .hr-div {
-        padding: 12px;
-        height: 1px;
-        cursor: row-resize;
-
-
-
-        &::after {
-            display: block;
-            content: ' ';
-            height: 4px;
-            border-radius: 4px;
-            background-image: linear-gradient(to right,
-                    var(--primary),
-                    var(--secondary),
-                    var(--primary));
-        }
-    }
-
-    .vr-div {
-        padding: 12px;
-        width: 1px;
-        height: inherit;
-        cursor: col-resize;
-
-        &::after {
-            display: block;
-            height: inherit;
-            content: ' ';
-            width: 4px;
-            border-radius: 4px;
-            background-image: linear-gradient(to bottom,
-                    var(--primary),
-                    var(--secondary));
-        }
-    }
 
     a {
         color: var(--primary);

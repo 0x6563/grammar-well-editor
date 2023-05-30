@@ -1,0 +1,679 @@
+{
+    "state": {
+        "lexer": {
+            "start": "start",
+            "states": {
+                "start": {
+                    "name": "start",
+                    "rules": [
+                        {
+                            "import": [
+                                "string",
+                                "js",
+                                "ws",
+                                "comment",
+                                "l_scolon",
+                                "l_star"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "lexer(?![a-zA-Z\\d_])",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_WORD"
+                            ],
+                            "highlight": "type",
+                            "goto": "lexer"
+                        },
+                        {
+                            "when": {
+                                "regex": "grammar(?![a-zA-Z\\d_])",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_WORD"
+                            ],
+                            "highlight": "type",
+                            "goto": "grammar"
+                        },
+                        {
+                            "when": {
+                                "regex": "config(?![a-zA-Z\\d_])",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_WORD"
+                            ],
+                            "highlight": "type",
+                            "goto": "config"
+                        },
+                        {
+                            "import": [
+                                "kv"
+                            ]
+                        }
+                    ]
+                },
+                "config": {
+                    "name": "config",
+                    "rules": [
+                        {
+                            "import": [
+                                "ws",
+                                "l_colon"
+                            ]
+                        },
+                        {
+                            "when": "{{",
+                            "tag": [
+                                "L_TEMPLATEL"
+                            ],
+                            "highlight": "bracket",
+                            "set": "config_inner"
+                        }
+                    ]
+                },
+                "config_inner": {
+                    "name": "config_inner",
+                    "rules": [
+                        {
+                            "import": [
+                                "comment",
+                                "kv"
+                            ]
+                        },
+                        {
+                            "when": "}}",
+                            "tag": [
+                                "L_TEMPLATER"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ]
+                },
+                "grammar": {
+                    "name": "grammar",
+                    "rules": [
+                        {
+                            "import": [
+                                "ws",
+                                "l_colon"
+                            ]
+                        },
+                        {
+                            "when": "{{",
+                            "tag": [
+                                "L_TEMPLATEL"
+                            ],
+                            "highlight": "bracket",
+                            "set": "grammar_inner"
+                        }
+                    ]
+                },
+                "grammar_inner": {
+                    "name": "grammar_inner",
+                    "rules": [
+                        {
+                            "import": [
+                                "comment",
+                                "js",
+                                "js_template",
+                                "ws",
+                                "regex",
+                                "l_qmark",
+                                "l_plus",
+                                "l_star",
+                                "kv",
+                                "l_colon",
+                                "l_comma",
+                                "l_pipe",
+                                "l_parenl",
+                                "l_parenr",
+                                "l_arrow",
+                                "l_dsign",
+                                "l_dash"
+                            ]
+                        },
+                        {
+                            "when": "}}",
+                            "tag": [
+                                "L_TEMPLATER"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ]
+                },
+                "lexer": {
+                    "name": "lexer",
+                    "rules": [
+                        {
+                            "import": [
+                                "ws",
+                                "l_colon"
+                            ]
+                        },
+                        {
+                            "when": "{{",
+                            "tag": [
+                                "L_TEMPLATEL"
+                            ],
+                            "highlight": "bracket",
+                            "set": "lexer_inner"
+                        }
+                    ]
+                },
+                "lexer_inner": {
+                    "name": "lexer_inner",
+                    "rules": [
+                        {
+                            "import": [
+                                "ws",
+                                "comment",
+                                "regex",
+                                "l_comma",
+                                "l_arrow",
+                                "l_dash",
+                                "kv",
+                                "js"
+                            ]
+                        },
+                        {
+                            "when": "}}",
+                            "tag": [
+                                "L_TEMPLATER"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ]
+                },
+                "js": {
+                    "name": "js",
+                    "rules": [
+                        {
+                            "when": "${",
+                            "tag": [
+                                "L_JSL"
+                            ],
+                            "highlight": "bracket",
+                            "goto": "js_wrap"
+                        }
+                    ]
+                },
+                "js_wrap": {
+                    "name": "js_wrap",
+                    "rules": [
+                        {
+                            "import": [
+                                "jsignore"
+                            ]
+                        },
+                        {
+                            "when": "{",
+                            "tag": [
+                                "T_JSBODY"
+                            ],
+                            "highlight": "bracket",
+                            "goto": "js_literal"
+                        },
+                        {
+                            "when": "}",
+                            "tag": [
+                                "L_JSR"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ],
+                    "default": "T_JSBODY",
+                    "unmatched": "T_JSBODY"
+                },
+                "js_literal": {
+                    "name": "js_literal",
+                    "rules": [
+                        {
+                            "import": [
+                                "jsignore"
+                            ]
+                        },
+                        {
+                            "when": "{",
+                            "tag": [
+                                "T_JSBODY"
+                            ],
+                            "highlight": "bracket",
+                            "goto": "js_literal"
+                        },
+                        {
+                            "when": "}",
+                            "tag": [
+                                "T_JSBODY"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ],
+                    "default": "T_JSBODY",
+                    "unmatched": "T_JSBODY"
+                },
+                "js_template": {
+                    "name": "js_template",
+                    "rules": [
+                        {
+                            "when": "{{",
+                            "tag": [
+                                "L_TEMPLATEL"
+                            ],
+                            "highlight": "bracket",
+                            "goto": "js_template_inner"
+                        }
+                    ]
+                },
+                "js_template_inner": {
+                    "name": "js_template_inner",
+                    "rules": [
+                        {
+                            "import": [
+                                "jsignore"
+                            ]
+                        },
+                        {
+                            "when": "{",
+                            "tag": [
+                                "T_JSBODY"
+                            ],
+                            "highlight": "bracket",
+                            "goto": "js_literal"
+                        },
+                        {
+                            "when": "}}",
+                            "tag": [
+                                "L_TEMPLATER"
+                            ],
+                            "highlight": "bracket",
+                            "pop": 1
+                        }
+                    ],
+                    "default": "T_JSBODY",
+                    "unmatched": "T_JSBODY"
+                },
+                "kv": {
+                    "name": "kv",
+                    "rules": [
+                        {
+                            "import": [
+                                "string",
+                                "ws",
+                                "word",
+                                "l_colon",
+                                "integer"
+                            ]
+                        }
+                    ]
+                },
+                "jsignore": {
+                    "name": "jsignore",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\"(?:[^\"\\\\\\r\\n]|\\\\.)*\"",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "'(?:[^'\\\\\\r\\n]|\\\\.)*'",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "`(?:[^`\\\\]|\\\\.)*`",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "\\/(?:[^\\/\\\\\\r\\n]|\\\\.)+\\/[gmiyu]*",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "\\/\\/[^\\n]*",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        },
+                        {
+                            "when": {
+                                "regex": "\\/\\*.*\\*\\/",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_JSBODY"
+                            ]
+                        }
+                    ]
+                },
+                "string": {
+                    "name": "string",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\"(?:[^\"\\\\\\r\\n]|\\\\.)*\"",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_STRING"
+                            ],
+                            "highlight": "string"
+                        }
+                    ]
+                },
+                "string2": {
+                    "name": "string2",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "'(?:[^'\\\\\\r\\n]|\\\\.)*'",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_STRING"
+                            ],
+                            "highlight": "string"
+                        }
+                    ]
+                },
+                "string3": {
+                    "name": "string3",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "`(?:[^`\\\\]|\\\\.)*`",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_STRING"
+                            ],
+                            "highlight": "string"
+                        }
+                    ]
+                },
+                "regex": {
+                    "name": "regex",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\\/(?:[^\\/\\\\\\r\\n]|\\\\.)+\\/",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_REGEX"
+                            ],
+                            "highlight": "regexp"
+                        }
+                    ]
+                },
+                "integer": {
+                    "name": "integer",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\\d+",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_INTEGER"
+                            ],
+                            "highlight": "number"
+                        }
+                    ]
+                },
+                "word": {
+                    "name": "word",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "[a-zA-Z_][a-zA-Z_\\d]*",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_WORD"
+                            ]
+                        }
+                    ]
+                },
+                "ws": {
+                    "name": "ws",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\\s+",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_WS"
+                            ]
+                        }
+                    ]
+                },
+                "l_colon": {
+                    "name": "l_colon",
+                    "rules": [
+                        {
+                            "when": ":",
+                            "highlight": "keyword",
+                            "tag": [
+                                "L_COLON"
+                            ]
+                        }
+                    ]
+                },
+                "l_scolon": {
+                    "name": "l_scolon",
+                    "rules": [
+                        {
+                            "when": ";",
+                            "tag": [
+                                "L_SCOLON"
+                            ]
+                        }
+                    ]
+                },
+                "l_qmark": {
+                    "name": "l_qmark",
+                    "rules": [
+                        {
+                            "when": "?",
+                            "tag": [
+                                "L_QMARK"
+                            ]
+                        }
+                    ]
+                },
+                "l_plus": {
+                    "name": "l_plus",
+                    "rules": [
+                        {
+                            "when": "+",
+                            "tag": [
+                                "L_PLUS"
+                            ]
+                        }
+                    ]
+                },
+                "l_star": {
+                    "name": "l_star",
+                    "rules": [
+                        {
+                            "when": "*",
+                            "tag": [
+                                "L_STAR"
+                            ]
+                        }
+                    ]
+                },
+                "l_comma": {
+                    "name": "l_comma",
+                    "rules": [
+                        {
+                            "when": ",",
+                            "tag": [
+                                "L_COMMA"
+                            ]
+                        }
+                    ]
+                },
+                "l_pipe": {
+                    "name": "l_pipe",
+                    "rules": [
+                        {
+                            "when": "|",
+                            "highlight":"keyword",
+                            "tag": [
+                                "L_PIPE"
+                            ]
+                        }
+                    ]
+                },
+                "l_parenl": {
+                    "name": "l_parenl",
+                    "rules": [
+                        {
+                            "when": "(",
+                            "highlight": "bracket",
+                            "tag": [
+                                "L_PARENL"
+                            ]
+                        }
+                    ]
+                },
+                "l_parenr": {
+                    "name": "l_parenr",
+                    "rules": [
+                        {
+                            "when": ")",
+                            "highlight": "bracket",
+                            "tag": [
+                                "L_PARENR"
+                            ]
+                        }
+                    ]
+                },
+                "l_templatel": {
+                    "name": "l_templatel",
+                    "rules": [
+                        {
+                            "when": "{{",
+                            "highlight": "bracket",
+                            "tag": [
+                                "L_TEMPLATEL"
+                            ]
+                        }
+                    ]
+                },
+                "l_templater": {
+                    "name": "l_templater",
+                    "rules": [
+                        {
+                            "when": "}}",
+                            "highlight": "bracket",
+                            "tag": [
+                                "L_TEMPLATER"
+                            ]
+                        }
+                    ]
+                },
+                "l_arrow": {
+                    "name": "l_arrow",
+                    "rules": [
+                        {
+                            "when": "->",
+                            "highlight":"keyword",
+                            "tag": [
+                                "L_ARROW"
+                            ]
+                        }
+                    ]
+                },
+                "l_dsign": {
+                    "name": "l_dsign",
+                    "rules": [
+                        {
+                            "when": "$",
+                            "tag": [
+                                "L_DSIGN"
+                            ]
+                        }
+                    ]
+                },
+                "l_dash": {
+                    "name": "l_dash",
+                    "rules": [
+                        {
+                            "when": "-",
+                            "tag": [
+                                "L_DASH"
+                            ]
+                        }
+                    ]
+                },
+                "comment": {
+                    "name": "comment",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\\/\\/[^\\n]*",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_COMMENT"
+                            ],
+                            "highlight": "comment"
+                        }
+                    ]
+                },
+                "commentmulti": {
+                    "name": "commentmulti",
+                    "rules": [
+                        {
+                            "when": {
+                                "regex": "\\/\\*.*\\*\\/",
+                                "flags": ""
+                            },
+                            "tag": [
+                                "T_COMMENT"
+                            ],
+                            "highlight": "comment"
+                        }
+                    ]
+                }
+            }
+        },
+        "head": [],
+        "body": [],
+        "config": {},
+        "version": "unknown"
+    },
+    "exportName": "GWLanguage"
+}

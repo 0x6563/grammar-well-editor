@@ -1,38 +1,25 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-
-    let top: HTMLElement;
-    let left: HTMLElement;
-    let right: HTMLElement;
-    let bottom: HTMLElement;
-    let horzRule: HTMLElement;
-    let vertRule: HTMLElement;
+    export let layout: 'stack' | 'row' = 'stack';
+    let container: HTMLElement;
+    let a: HTMLElement;
+    let b: HTMLElement;
+    let divider: HTMLElement;
     let last = { x: 0, y: 0 };
     let moving: HTMLElement;
     const dispatch = createEventDispatcher();
 
     onMount(() => {
-        horzRule.addEventListener('mousedown', onmousedown);
-        horzRule.addEventListener('touchstart', ontouchstart);
-        vertRule.addEventListener('mousedown', onmousedown);
-        vertRule.addEventListener('touchstart', ontouchstart);
+        divider.addEventListener('mousedown', onmousedown);
+        divider.addEventListener('touchstart', ontouchstart);
     });
 
     function move(e) {
         e.preventDefault();
-        const axis = moving.getAttribute('data-axis');
+        const axis = layout == 'row' ? 'X' : 'Y';
         const clientAxis = `client${axis}`;
         const point = e.type == 'mousemove' ? e[clientAxis] : e.touches[0][clientAxis];
-        let a, b, prop;
-        if (axis == 'X') {
-            a = left;
-            b = right;
-            prop = 'width';
-        } else {
-            a = top;
-            b = bottom;
-            prop = 'height';
-        }
+        let prop: 'width' | 'height' = axis == 'X' ? 'width' : 'height';
         const delta = point - (last[axis] || point);
         last[axis] = point;
         resize(a, b, prop, delta);
@@ -79,19 +66,15 @@
     }
 </script>
 
-<div class="stack">
-    <div bind:this={top} class="row">
-        <div bind:this={left} class="item">
-            <slot name="left" />
-        </div>
-        <div bind:this={horzRule} class="vr-div" data-axis="X" />
-        <div bind:this={right} class="item">
-            <slot name="right" />
-        </div>
+<div bind:this={container} class={layout}>
+    <div bind:this={a} class="item">
+        <slot name="a" />
     </div>
-    <div bind:this={vertRule} class="hr-div" data-axis="Y" />
-    <div bind:this={bottom} class="item">
-        <slot name="bottom" />
+
+    <div bind:this={divider} data-divider={layout} />
+
+    <div bind:this={b} class="item">
+        <slot name="b" />
     </div>
 </div>
 
@@ -108,5 +91,35 @@
     .item {
         overflow: hidden;
         flex: 50%;
+    }
+
+    [data-divider='stack'] {
+        padding: 12px;
+        height: 1px;
+        cursor: row-resize;
+
+        &::after {
+            display: block;
+            content: ' ';
+            height: 4px;
+            border-radius: 4px;
+            background-image: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
+        }
+    }
+
+    [data-divider='row'] {
+        padding: 12px;
+        width: 1px;
+        height: calc(100% - 12px);
+        cursor: col-resize;
+
+        &::after {
+            display: block;
+            height: inherit;
+            content: ' ';
+            width: 4px;
+            border-radius: 4px;
+            background-image: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
     }
 </style>

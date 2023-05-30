@@ -10,6 +10,8 @@
     import type { editor, Position, languages, CancellationToken, IRange } from 'monaco-editor';
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { Theme } from '@services/theme';
+    import { DefaultLanguage, GetMonarchLanguage } from '@services/gwell-monarch';
+    import { ResizeService } from '@services/resizing';
 
     export let value = '';
     export let language = 'json';
@@ -21,6 +23,7 @@
     export let width: 'fill' | 'auto' = 'fill';
     export let height: 'fill' | 'auto' = 'fill';
     export let settings: editor.IStandaloneEditorConstructionOptions = {};
+    export let tokensProvider: languages.IMonarchLanguage = DefaultLanguage;
 
     let container: HTMLDivElement = null;
     const dispatch = createEventDispatcher();
@@ -36,6 +39,11 @@
             Monaco.editor.setTheme(theme);
         }
     }
+    $: {
+        if (codeEditor) {
+            Monaco.languages.setMonarchTokensProvider('sample', tokensProvider);
+        }
+    }
     Theme.subscribe((v) => (theme = v == 'light' ? 'vs-light' : 'vs-dark'));
 
     onMount(async () => {
@@ -47,9 +55,20 @@
                 completionItemProvider?: languages.CompletionItemProvider;
             };
         } = {
-            nearley: {
+            'grammar-well': {
                 tokensProvider: {
+                    keywords: ['lexer', 'when'],
                     brackets: [
+                        {
+                            open: '{{',
+                            close: '}}',
+                            token: 'delimiter.curly',
+                        },
+                        {
+                            open: '${',
+                            close: '}',
+                            token: 'delimiter.curly',
+                        },
                         {
                             open: '{',
                             close: '}',
@@ -66,48 +85,10 @@
                             token: 'delimiter.parenthesis',
                         },
                     ],
-
                     symbols: /->|\||\:\+|\:\*/,
                     operators: ['|', '->', ':*', ':+'],
                     escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-                    tokenizer: {
-                        root: [
-                            {
-                                include: '@whitespace',
-                            },
-                            [/\{\%/, { token: 'tag ', next: '@scriptEnd', nextEmbedded: 'text/javascript' }],
-                            [/\$\{/, { token: 'tag ', next: '@interpolateEnd', nextEmbedded: 'text/javascript' }],
-                            [/@\{\%/, { token: 'tag ', next: '@scriptEnd', nextEmbedded: 'text/javascript' }],
-                            [/@symbols/, { cases: { '@operators': 'keyword', '@default': 'symbols' } }],
-                            [/\[/, 'regexp', '@regex'],
-                            [/"/, 'string', '@string'],
-                            [/[\(\)\[\]]/, '@brackets'],
-                        ],
-                        scriptEnd: [
-                            [/\%\}/, { token: '@rematch', next: '@pop', nextEmbedded: '@pop' }],
-                            [/[^%]+/, ''],
-                        ],
-                        interpolateEnd: [
-                            [/\}/, { token: '@rematch', next: '@pop', nextEmbedded: '@pop' }],
-                            [/[^%]+/, ''],
-                        ],
-                        whitespace: [
-                            [/[ \t\r\n]+/, 'white'],
-                            [/\#.*$/, 'comment'],
-                        ],
-                        string: [
-                            [/[^\\"]+/, 'string'],
-                            [/@escapes/, 'string.escape'],
-                            [/\\./, 'string.escape.invalid'],
-                            [/(")([i]?)/, [{ token: 'string', next: '@pop' }, { token: 'keyword.other' }]],
-                        ],
-                        regex: [
-                            [/[^\\\]]+/, 'regexp'],
-                            [/@escapes/, 'regexp.escape'],
-                            [/\\./, 'regexp.escape.invalid'],
-                            [/]/, 'regexp', '@pop'],
-                        ],
-                    },
+                    ...GetMonarchLanguage(),
                 },
             },
             mySpecialLanguage: {
@@ -190,6 +171,8 @@
                 Monaco.languages.registerCompletionItemProvider(id, completionItemProvider);
             }
         }
+        Monaco.languages.register({ id: 'sample' });
+        Monaco.languages.setMonarchTokensProvider('sample', tokensProvider);
 
         for (const id in CustomThemes) {
             Monaco.editor.defineTheme(id, CustomThemes[id]);
@@ -228,9 +211,7 @@
             resize();
             dispatch('edit', value);
         });
-        dispatch('load', {
-            resize,
-        });
+        ResizeService.add(resize);
     });
 
     onDestroy(() => {
@@ -239,6 +220,7 @@
             const model = codeEditor.getModel();
             if (model) model.dispose();
         }
+        ResizeService.remove(resize);
     });
 
     function resize() {
