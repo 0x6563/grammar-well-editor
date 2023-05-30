@@ -71,11 +71,29 @@
     }
 </script>
 
-{#if treeData}
-    <button class="material-icons text secondary" on:click={OpenDiagram}> account_tree </button>
-{/if}
-
-<Code language="grammar-well" value={JSON.stringify(result, null, 2)} width="fill" height="fill" settings={{ readOnly: true }} />
+<div class="flx">
+    <div class="head">
+        {#if treeData}
+            <button class="material-icons text secondary" on:click={OpenDiagram}> account_tree </button>
+        {/if}
+    </div>
+    <div class="body">
+        <Code language="grammar-well" value={JSON.stringify(result, null, 2)} width="fill" height="fill" settings={{ readOnly: true }} />
+    </div>
+</div>
 
 <style lang="scss">
+    .flx {
+        display: flex;
+        flex-flow: column;
+        height: 100%;
+        width: 100%;
+        .head {
+            flex: 0 1 auto;
+            height: 25px;
+        }
+        .body {
+            flex: 1 1 auto;
+        }
+    }
 </style>

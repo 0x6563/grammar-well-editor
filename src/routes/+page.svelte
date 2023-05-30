@@ -26,23 +26,31 @@
     let tokensProvider: languages.IMonarchLanguage = DefaultLanguage;
 
     let lastrun = 0;
-    const sub = new Subject<void>();
+    const RunnerSub = new Subject<void>();
+    const SyntaxSub = new Subject<void>();
     function OnUpdate() {
         viewport?.classList.add('pending');
         localStorage.setItem('grammar', grammar);
         localStorage.setItem('input', input);
-        sub.next();
+        RunnerSub.next();
     }
-
-    onMount(() => {
-        sub.pipe(debounceTime(2000)).subscribe(() => RunGrammar());
+    function GrammarUpdate() {
         OnUpdate();
+        SyntaxSub.next();
+    }
+    onMount(() => {
+        SyntaxSub.pipe(debounceTime(2000)).subscribe(() => RunSyntax());
+        RunnerSub.pipe(debounceTime(2000)).subscribe(() => RunGrammar());
+        GrammarUpdate();
     });
+
+    async function RunSyntax() {
+        tokensProvider = (await WorkerPromise(LanguageWorker, { grammar }).value).result;
+    }
 
     async function RunGrammar() {
         const timestamp = Date.now();
         lastrun = timestamp;
-        WorkerPromise(LanguageWorker, { grammar }).value.then((v) => (tokensProvider = v.result));
         const worker = WorkerPromise(GrammarWellWorker, { grammar, input });
         const { result, error } = Unflatten(await worker.value);
         if (lastrun == timestamp) {
@@ -63,7 +71,7 @@
             <div slot="a" class="section">
                 <h1>Definition</h1>
                 <div class="content">
-                    <Code language="grammar-well" bind:value={grammar} width="fill" height="fill" on:edit={OnUpdate} />
+                    <Code language="grammar-well" bind:value={grammar} width="fill" height="fill" on:edit={GrammarUpdate} />
                 </div>
             </div>
             <div slot="b" class="section">

@@ -65,6 +65,8 @@
     .labels {
         flex: 0 1 auto;
         height: 30px;
+        white-space: nowrap;
+        overflow: auto;
         .label {
             display: inline-block;
             height: 25px;
@@ -75,6 +77,11 @@
             &.active {
                 border-bottom: solid 2px var(--primary);
             }
+        }
+        -ms-overflow-style: none; /* Internet Explorer 10+ */
+        scrollbar-width: none; /* Firefox */
+        &::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
         }
     }
 </style>

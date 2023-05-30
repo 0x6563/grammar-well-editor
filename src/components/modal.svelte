@@ -34,7 +34,7 @@
         bottom: 0;
         width: 100vw;
         height: 100vh;
-        z-index: 999999;
+        z-index: 1;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -56,5 +56,6 @@
         z-index: 1;
         max-width: 95vw;
         max-height: 95vh;
+        overflow: auto;
     }
 </style>
