@@ -24,7 +24,7 @@
 		"vite": "^4.3.9"
 	},
 	"dependencies": {
-		"grammar-well": "^1.1.5",
+		"grammar-well": "^1.1.7",
 		"jsonpath-plus": "^7.2.0",
 		"monaco-editor": "^0.38.0",
 		"object-mutation-observer": "^2.0.2",

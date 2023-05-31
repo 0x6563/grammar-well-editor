@@ -66,7 +66,6 @@
         return data;
     }
     function OpenDiagram() {
-        console.log(treeData);
         ModalService.new(Tree, { tree: treeData });
     }
 </script>
@@ -87,7 +86,7 @@
         display: flex;
         flex-flow: column;
         height: 100%;
-        width: 100%;
+        width: 100%;    
         .head {
             flex: 0 1 auto;
             height: 25px;

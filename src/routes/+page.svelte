@@ -13,7 +13,7 @@
     import Modal from '@components/modal.svelte';
     import SplitView from '@components/split-view.svelte';
     import jgwell from '@services/json.gwell?raw';
-    import { WorkerPromise } from '@services/worker-runner';
+    import { WorkerPromise, type WorkerPromiseResult } from '@services/worker-runner';
     import { DefaultLanguage } from '@services/gwell-monarch';
     import { ResizeService } from '@services/resizing';
     import Results from '@components/results.svelte';
@@ -23,16 +23,25 @@
     let runError = '';
     let results = [];
     let viewport: HTMLElement;
+    let progressbar: HTMLElement;
     let tokensProvider: languages.IMonarchLanguage = DefaultLanguage;
+    let grammarWorker: WorkerPromiseResult;
 
-    let lastrun = 0;
     const RunnerSub = new Subject<void>();
     const SyntaxSub = new Subject<void>();
     function OnUpdate() {
-        viewport?.classList.add('pending');
+        ResetProgress();
+
         localStorage.setItem('grammar', grammar);
         localStorage.setItem('input', input);
         RunnerSub.next();
+    }
+    function ResetProgress() {
+        if (progressbar) {
+            progressbar.style.animation = 'none';
+            progressbar.offsetHeight; /* trigger reflow */
+            progressbar.style.animation = null;
+        }
     }
     function GrammarUpdate() {
         OnUpdate();
@@ -45,23 +54,24 @@
     });
 
     async function RunSyntax() {
-        tokensProvider = (await WorkerPromise(LanguageWorker, { grammar }).value).result;
+        tokensProvider = (await WorkerPromise(LanguageWorker, { grammar }).value).result || tokensProvider;
     }
 
     async function RunGrammar() {
-        const timestamp = Date.now();
-        lastrun = timestamp;
-        const worker = WorkerPromise(GrammarWellWorker, { grammar, input });
-        const { result, error } = Unflatten(await worker.value);
-        if (lastrun == timestamp) {
-            viewport?.classList.remove('pending');
-            results = [];
-            runError = '';
-            if (error) {
-                runError = `Error: ` + (typeof error == 'string' ? error : JSON.stringify(error));
-            }
-            results = result?.results || [];
+        viewport?.classList.add('pending');
+
+        if (grammarWorker) {
+            grammarWorker.reject();
         }
+        grammarWorker = WorkerPromise(GrammarWellWorker, { grammar, input });
+        const { result, error } = Unflatten(await grammarWorker.value);
+        viewport?.classList.remove('pending');
+        results = [];
+        runError = '';
+        if (error) {
+            runError = `Error: ` + (typeof error == 'string' ? error : JSON.stringify(error));
+        }
+        results = result?.results || [];
     }
 </script>
 
@@ -81,7 +91,7 @@
                 </div>
             </div>
         </SplitView>
-        <div bind:this={viewport} slot="b" class="section">
+        <div bind:this={viewport} slot="b" class="section viewport">
             <h1>Results</h1>
             <div class="content">
                 {#if !runError}
@@ -93,9 +103,55 @@
         </div>
     </SplitView>
 </div>
+<div class="progress-wrapper">
+    <div bind:this={progressbar} class="progress" />
+</div>
 <Modal />
 
 <style lang="scss">
+    .progress-wrapper {
+        overflow: hidden;
+        height: 8px;
+        padding: 0 16px;
+        box-sizing: border-box;
+        position: relative;
+    }
+    .progress {
+        position: absolute;
+        box-sizing: border-box;
+        display: block;
+        content: ' ';
+        height: 8px;
+        border-radius: 20%;
+        opacity: 0;
+        left: 100%;
+        width: 100%;
+        background-image: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
+        animation: bounce 2.2s ease-in-out;
+
+        @keyframes bounce {
+            0% {
+                left: 0;
+                width: 0%;
+                opacity: 0;
+            }
+
+            45% {
+                left: 0;
+                opacity: 1;
+                width: 50%;
+            }
+
+            90% {
+                left: 100%;
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+    }
+
     .section {
         display: flex;
         flex-flow: column;
@@ -115,7 +171,7 @@
     }
     .wrapper {
         padding: 12px;
-        height: 100%;
+        height: calc(100% - 12px);
         width: 100%;
         box-sizing: border-box;
     }

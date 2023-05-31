@@ -1,15 +1,14 @@
 <script lang="ts">
-    import type { ModalComponent } from '@services/modal';
     import { onMount } from 'svelte';
     import Result from './result.svelte';
     import { ResizeService } from '@services/resizing';
     export let results: any[] = [];
-    let tabs: { result: any; label: string; show: boolean }[] = [];
+    let tabs: { result: any; label: string }[] = [];
     let active;
     $: {
         tabs = [];
         for (let i = 0; i < results.length; i++) {
-            tabs.push({ result: results[i], show: false, label: `Results ${i}` });
+            tabs.push({ result: results[i], label: `Results ${i}` });
         }
         ShowTab(tabs[0]);
     }
@@ -24,15 +23,15 @@
 
 <div class="container">
     <div class="labels">
-        {#each tabs as tab}
-            <div class="label" on:click={() => ShowTab(tab)} class:active={tab == active}>
+        {#each tabs as tab, i}
+            <div class="label" on:click={() => ShowTab(tab)} class:active={tab == active || (!active && i == 0)}>
                 {tab.label}
             </div>
         {/each}
     </div>
     <div class="viewport">
-        {#each tabs as tab}
-            <div class="viewport-child" class:active={tab == active}>
+        {#each tabs as tab, i}
+            <div class="viewport-child" class:active={tab == active || (!active && i == 0)}>
                 <Result result={tab.result} />
             </div>
         {/each}

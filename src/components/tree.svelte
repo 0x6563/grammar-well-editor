@@ -129,5 +129,6 @@
 <style lang="scss">
     svg {
         background: var(--background);
+        font-family: 'Source Sans Pro', sans-serif;
     }
 </style>
