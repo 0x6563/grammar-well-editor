@@ -23,7 +23,7 @@
     export let width: 'fill' | 'auto' = 'fill';
     export let height: 'fill' | 'auto' = 'fill';
     export let settings: editor.IStandaloneEditorConstructionOptions = {};
-    export let tokensProvider: languages.IMonarchLanguage = DefaultLanguage;
+    export let tokensProvider: languages.IMonarchLanguage | undefined = undefined;
 
     let container: HTMLDivElement = null;
     const dispatch = createEventDispatcher();
@@ -39,11 +39,13 @@
             Monaco.editor.setTheme(theme);
         }
     }
+
     $: {
-        if (codeEditor) {
+        if (Monaco && tokensProvider) {
             Monaco.languages.setMonarchTokensProvider('sample', tokensProvider);
         }
     }
+
     Theme.subscribe((v) => (theme = v == 'light' ? 'vs-light' : 'vs-dark'));
 
     onMount(async () => {
@@ -171,8 +173,10 @@
                 Monaco.languages.registerCompletionItemProvider(id, completionItemProvider);
             }
         }
-        Monaco.languages.register({ id: 'sample' });
-        Monaco.languages.setMonarchTokensProvider('sample', tokensProvider);
+        if (tokensProvider) {
+            Monaco.languages.register({ id: 'sample' });
+            Monaco.languages.setMonarchTokensProvider('sample', tokensProvider);
+        }
 
         for (const id in CustomThemes) {
             Monaco.editor.defineTheme(id, CustomThemes[id]);

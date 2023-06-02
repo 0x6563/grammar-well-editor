@@ -29,45 +29,49 @@
 
     const RunnerSub = new Subject<void>();
     const SyntaxSub = new Subject<void>();
-    function OnUpdate() {
-        ResetProgress();
+
+    function OnSampleUpdate() {
+        progressbar?.classList.add('pending');
 
         localStorage.setItem('grammar', grammar);
         localStorage.setItem('input', input);
         RunnerSub.next();
     }
-    function ResetProgress() {
-        if (progressbar) {
-            progressbar.style.animation = 'none';
-            progressbar.offsetHeight; /* trigger reflow */
-            progressbar.style.animation = null;
-        }
-    }
-    function GrammarUpdate() {
-        OnUpdate();
+
+    function OnGrammarUpdate() {
+        OnSampleUpdate();
         SyntaxSub.next();
     }
     onMount(() => {
         SyntaxSub.pipe(debounceTime(2000)).subscribe(() => RunSyntax());
         RunnerSub.pipe(debounceTime(2000)).subscribe(() => RunGrammar());
-        GrammarUpdate();
+        OnGrammarUpdate();
     });
 
     async function RunSyntax() {
-        tokensProvider = (await WorkerPromise(LanguageWorker, { grammar }).value).result || tokensProvider;
+        const { result } = await WorkerPromise(LanguageWorker, { grammar }).value;
+
+        console.log(result);
+        if (result) {
+            tokensProvider = result;
+        }
     }
 
     async function RunGrammar() {
         viewport?.classList.add('pending');
 
+        results = [];
+        runError = '';
+
         if (grammarWorker) {
             grammarWorker.reject();
         }
+
         grammarWorker = WorkerPromise(GrammarWellWorker, { grammar, input });
         const { result, error } = Unflatten(await grammarWorker.value);
         viewport?.classList.remove('pending');
-        results = [];
-        runError = '';
+        progressbar?.classList.remove('pending');
+
         if (error) {
             runError = `Error: ` + (typeof error == 'string' ? error : JSON.stringify(error));
         }
@@ -81,13 +85,13 @@
             <div slot="a" class="section">
                 <h1>Definition</h1>
                 <div class="content">
-                    <Code language="grammar-well" bind:value={grammar} width="fill" height="fill" on:edit={GrammarUpdate} />
+                    <Code language="grammar-well" bind:value={grammar} width="fill" height="fill" on:edit={OnGrammarUpdate} />
                 </div>
             </div>
             <div slot="b" class="section">
                 <h1>Sample</h1>
                 <div class="content">
-                    <Code language="sample" bind:value={input} width="fill" height="fill" on:edit={OnUpdate} {tokensProvider} />
+                    <Code language="sample" bind:value={input} width="fill" height="fill" on:edit={OnSampleUpdate} {tokensProvider} />
                 </div>
             </div>
         </SplitView>
@@ -122,32 +126,32 @@
         display: block;
         content: ' ';
         height: 8px;
-        border-radius: 20%;
-        opacity: 0;
+        border-radius: 50%;
+        opacity: 1;
         left: 100%;
-        width: 100%;
+        width: 8px;
         background-image: linear-gradient(to right, var(--primary), var(--secondary), var(--primary));
-        animation: bounce 2.2s ease-in-out;
+        transition: all 2s;
+        opacity: 0;
+        &:global(.pending) {
+            animation: bounce 2.2s ease-in-out infinite;
+            opacity: 1;
 
-        @keyframes bounce {
-            0% {
-                left: 0;
-                width: 0%;
-                opacity: 0;
-            }
+            @keyframes bounce {
+                0% {
+                    left: 16px;
+                    opacity: 1;
+                }
 
-            45% {
-                left: 0;
-                opacity: 1;
-                width: 50%;
-            }
+                50% {
+                    left: 15%;
+                    opacity: 1;
+                }
 
-            90% {
-                left: 100%;
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
+                100% {
+                    left: 16px;
+                    opacity: 1;
+                }
             }
         }
     }

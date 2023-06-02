@@ -11,7 +11,7 @@ async function TestGrammar(grammar, input) {
         return { result: await GrammarWellRunner(grammar, input) };
     } catch (error) {
         console.log(error)
-        return { error };
+        return { error: error.toString() };
     }
 }
 
@@ -21,7 +21,7 @@ function Clone(obj) {
         return o;
     } catch (error) {
         console.log(error);
-        return { error }
+        return { error: error.toString() }
     }
 }
 

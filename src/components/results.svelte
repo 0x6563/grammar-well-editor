@@ -8,7 +8,7 @@
     $: {
         tabs = [];
         for (let i = 0; i < results.length; i++) {
-            tabs.push({ result: results[i], label: `Results ${i}` });
+            tabs.push({ result: results[i], label: `# ${i}` });
         }
         ShowTab(tabs[0]);
     }
