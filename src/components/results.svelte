@@ -8,7 +8,7 @@
     $: {
         tabs = [];
         for (let i = 0; i < results.length; i++) {
-            tabs.push({ result: results[i], label: `# ${i}` });
+            tabs.push({ result: results[i], label: `# ${i + 1}` });
         }
         ShowTab(tabs[0]);
     }
@@ -42,7 +42,7 @@
     .container {
         display: flex;
         height: 100%;
-        flex-flow: column;
+        flex-flow: row;
     }
     .viewport {
         flex: 1 1 auto;
@@ -63,18 +63,15 @@
     }
     .labels {
         flex: 0 1 auto;
-        height: 30px;
-        white-space: nowrap;
-        overflow: auto;
         .label {
-            display: inline-block;
+            display: block;
             height: 25px;
             line-height: 25px;
             cursor: pointer;
-            border-bottom: solid 2px var(--background);
+            border-right: solid 2px var(--background);
             padding: 0 12px;
             &.active {
-                border-bottom: solid 2px var(--primary);
+                border-right: solid 2px var(--primary);
             }
         }
         -ms-overflow-style: none; /* Internet Explorer 10+ */

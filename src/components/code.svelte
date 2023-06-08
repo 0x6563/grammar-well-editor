@@ -10,7 +10,7 @@
     import type { editor, Position, languages, CancellationToken, IRange } from 'monaco-editor';
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { Theme } from '@services/theme';
-    import { DefaultLanguage, GetMonarchLanguage } from '@services/gwell-monarch';
+    import { GetMonarchLanguage } from '@services/gwell-monarch';
     import { ResizeService } from '@services/resizing';
 
     export let value = '';

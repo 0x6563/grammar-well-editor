@@ -9,24 +9,49 @@
     import { debounceTime, Subject } from 'rxjs';
     import { Unflatten } from 'grammar-well/build/utility/general';
 
-    import Code from '@components/code.svelte';
-    import Modal from '@components/modal.svelte';
-    import SplitView from '@components/split-view.svelte';
-    import jgwell from '@services/json.gwell?raw';
     import { WorkerPromise, type WorkerPromiseResult } from '@services/worker-runner';
     import { DefaultLanguage } from '@services/gwell-monarch';
     import { ResizeService } from '@services/resizing';
+
+    import jsonGrammar from '@services/samples/json.grammar.txt?raw';
+    import jsonSample from '@services/samples/json.sample.txt?raw';
+
+    import simpleGrammar from '@services/samples/simple.grammar.txt?raw';
+    import simpleSample from '@services/samples/simple.sample.txt?raw';
+    import grammarWellGrammar from 'grammar-well/src/grammars/gwell.gwell?raw';
+
+    import Code from '@components/code.svelte';
+    import Modal from '@components/modal.svelte';
+    import SplitView from '@components/split-view.svelte';
     import Results from '@components/results.svelte';
 
-    let grammar = localStorage.getItem('grammar') || jgwell;
-    let input = localStorage.getItem('input') || JSON.stringify({ some: 'value' }, null, 2);
+    let grammar = localStorage.getItem('grammar') || jsonGrammar;
+    let input = localStorage.getItem('input') || jsonSample;
     let runError = '';
     let results = [];
-    let viewport: HTMLElement;
+    let timings;
     let progressbar: HTMLElement;
     let tokensProvider: languages.IMonarchLanguage = DefaultLanguage;
     let grammarWorker: WorkerPromiseResult;
 
+    const samples = {
+        blank: {
+            grammar: '',
+            sample: '',
+        },
+        gwell: {
+            grammar: grammarWellGrammar,
+            sample: grammarWellGrammar,
+        },
+        json: {
+            grammar: jsonGrammar,
+            sample: jsonSample,
+        },
+        simple: {
+            grammar: simpleGrammar,
+            sample: simpleSample,
+        },
+    };
     const RunnerSub = new Subject<void>();
     const SyntaxSub = new Subject<void>();
 
@@ -58,18 +83,15 @@
     }
 
     async function RunGrammar() {
-        viewport?.classList.add('pending');
-
         results = [];
         runError = '';
-
         if (grammarWorker) {
             grammarWorker.reject();
         }
 
         grammarWorker = WorkerPromise(GrammarWellWorker, { grammar, input });
-        const { result, error } = Unflatten(await grammarWorker.value);
-        viewport?.classList.remove('pending');
+        const { result, error, timings: b } = Unflatten(await grammarWorker.value);
+        timings = b;
         progressbar?.classList.remove('pending');
 
         if (error) {
@@ -77,26 +99,42 @@
         }
         results = result?.results || [];
     }
+
+    function LoadSample(s) {
+        grammar = samples[s].grammar;
+        input = samples[s].sample;
+    }
 </script>
+
+<div class="sidebar">
+    <a href="https://github.com/0x6563/grammar-well">Grammar Well</a> <a href="https://github.com/0x6563/grammar-well-editor">Live Editor</a>
+    |
+    <span class="space" />
+    Load a sample:
+    <button on:click={() => LoadSample('json')}>JSON</button>
+    <button on:click={() => LoadSample('gwell')}>Grammar Well</button>
+    <button on:click={() => LoadSample('simple')}>Simple Programming Language</button>
+    <!-- <button class="material-icons" on:click={toggleTheme}>{theme}_mode</button> -->
+</div>
 
 <div class="wrapper">
     <SplitView on:resize={ResizeService.update} layout="row">
         <SplitView slot="a" on:resize={ResizeService.update} layout="stack">
             <div slot="a" class="section">
-                <h1>Definition</h1>
+                <h2>Definition</h2>
                 <div class="content">
                     <Code language="grammar-well" bind:value={grammar} width="fill" height="fill" on:edit={OnGrammarUpdate} />
                 </div>
             </div>
             <div slot="b" class="section">
-                <h1>Sample</h1>
+                <h2>Sample</h2>
                 <div class="content">
                     <Code language="sample" bind:value={input} width="fill" height="fill" on:edit={OnSampleUpdate} {tokensProvider} />
                 </div>
             </div>
         </SplitView>
-        <div bind:this={viewport} slot="b" class="section viewport">
-            <h1>Results</h1>
+        <div slot="b" class="section">
+            <h2>Results</h2>
             <div class="content">
                 {#if !runError}
                     <Results {results} />
@@ -104,11 +142,17 @@
                     <pre class="errors">{runError}</pre>
                 {/if}
             </div>
+
+            <div class="footer">
+                {#if timings}
+                    Compiled grammar in <b>{timings.compile.toFixed(2)} ms</b> Parsed sample in <b>{timings.parse.toFixed(2)} ms</b>
+                {/if}
+                <div class="progress-wrapper">
+                    <div bind:this={progressbar} class="progress" />
+                </div>
+            </div>
         </div>
     </SplitView>
-</div>
-<div class="progress-wrapper">
-    <div bind:this={progressbar} class="progress" />
 </div>
 <Modal />
 
@@ -161,7 +205,7 @@
         flex-flow: column;
         height: 100%;
 
-        h1 {
+        h2 {
             margin: 0;
             padding: 8px 16px 16px;
             flex: 0 1 auto;
@@ -173,25 +217,27 @@
             height: 100%;
         }
     }
-    .wrapper {
-        padding: 12px;
-        height: calc(100% - 12px);
+    .sidebar {
         width: 100%;
+        height: 30px;
+
+        line-height: 30px;
+        padding: 0 20px;
+    }
+    .wrapper {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 30px;
+        bottom: 0;
+        padding: 8px;
         box-sizing: border-box;
     }
     .errors {
         white-space: pre;
     }
-    .viewport {
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        opacity: 1;
-        transition: all 2s;
-
-        &:global(.pending) {
-            opacity: 0.5;
-            filter: blur(4px);
-        }
+    .footer {
+        font-size: 0.75em;
+        text-align: right;
     }
 </style>

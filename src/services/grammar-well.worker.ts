@@ -4,15 +4,17 @@ import { Flatten } from 'grammar-well/build/utility/general';
 
 
 
-onmessage = (e) => TestGrammar(e.data.grammar, e.data.input).then(v => postMessage(Clone(v)));
+onmessage = (e) => TestGrammar(e.data.grammar, e.data.input);
 
 async function TestGrammar(grammar, input) {
+    let response;
     try {
-        return { result: await GrammarWellRunner(grammar, input) };
+        response = await GrammarWellRunner(grammar, input);
     } catch (error) {
         console.log(error)
-        return { error: error.toString() };
+        response = { error: error.toString() };
     }
+    postMessage(Clone(response));
 }
 
 function Clone(obj) {
@@ -31,7 +33,14 @@ async function GrammarWellRunner(source, input) {
         eval(source);
         return module.exports;
     }
+    const response: any = { timings: {} };
+    const compileStart = performance.now();
     const compiled = await Compile(source, { exportName: 'grammar', resolverInstance: new BrowserImportResolver(self.location.origin) });
-    return Parse(Evalr(compiled)(), input, { algorithm: 'earley' });
+    const compileEnd = performance.now();
+    response.timings.compile = compileEnd - compileStart;
+
+    response.result = Parse(Evalr(compiled)(), input, { algorithm: 'earley' });
+    response.timings.parse = performance.now() - compileEnd;
+    return response;
 }
 

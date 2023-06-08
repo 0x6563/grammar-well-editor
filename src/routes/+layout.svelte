@@ -29,12 +29,10 @@
     <div class="body">
         <slot />
     </div>
-
-    <div class="footer">
-        <a href="https://github.com/0x6563/" class="mark">&nbsp;</a>
-        <div class="space" />
-        <div class="title">Grammar Well Live Editor | <a href="https://github.com/0x6563/grammar-well">Grammar Well Repo</a> <a href="https://github.com/0x6563/grammar-well-editor">Editor Repo</a></div>
-        <div class="space" />
-        <button class="material-icons" on:click={toggleTheme}>{theme}_mode</button>
-    </div>
 </div>
+
+<style lang="scss">
+    .body {
+        position: relative;
+    }
+</style>
