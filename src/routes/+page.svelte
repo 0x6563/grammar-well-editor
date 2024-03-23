@@ -18,6 +18,10 @@
 
     import simpleGrammar from '@services/samples/simple.grammar.txt?raw';
     import simpleSample from '@services/samples/simple.sample.txt?raw';
+    
+    import xmlGrammar from '@services/samples/xml.grammar.txt?raw';
+    import xmlSample from '@services/samples/xml.sample.txt?raw';
+
     import grammarWellGrammar from 'grammar-well/src/grammars/gwell.gwell?raw';
 
     import Code from '@components/code.svelte';
@@ -50,6 +54,10 @@
         simple: {
             grammar: simpleGrammar,
             sample: simpleSample,
+        },
+        xml: {
+            grammar: xmlGrammar,
+            sample: xmlSample,
         },
     };
     const RunnerSub = new Subject<void>();
@@ -111,6 +119,7 @@
     |
     <span class="space" />
     Load a sample:
+    <button on:click={() => LoadSample('xml')}>XML</button>
     <button on:click={() => LoadSample('json')}>JSON</button>
     <button on:click={() => LoadSample('gwell')}>Grammar Well</button>
     <button on:click={() => LoadSample('simple')}>Simple Programming Language</button>

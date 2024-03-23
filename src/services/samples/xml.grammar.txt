@@ -1,0 +1,71 @@
+lexer: {{
+    start: "root"
+
+    root ->
+        - import: commentL
+        - when: "<" tag: "lbracket" highlight: "tag" goto: tag
+        - when: /[^<]+/ tag: "text"
+
+    tag -> 
+        - import: commentL
+        - when: /[a-z_A-Z:!][a-z_A-Z\d\-:!]*/ tag:"word"
+        - when: /\s+/ tag: "space" 
+        - when: "=" tag: "="
+        - when: ">" tag: "rbracket"  highlight: "tag" pop
+        - when: "/" tag: "stlash" 
+        - when: /"/ tag: "dquote" highlight:"string" goto: string 
+    
+    commentL ->
+        - when: "<!--" tag: "lcomment" goto: commentR
+
+    commentR ->
+        unmatched: "text"
+        - when: "-->" tag: "rcomment" pop
+
+
+    string ->
+        unmatched: "string"
+        - when: /\\./ tag: "escaped" highlight:"string"
+        - when: "\"" tag: "dquote" highlight:"string" pop
+}}
+
+grammar: {{
+    // Uncomment the line below to allow experimental diagram generation
+	// postprocessorOverride: ${ _ =>_ }
+
+    xml -> node : {{ { nodes: $0 ?[$0]:[] } }}
+        | xml _ node : {{ { nodes: $2 ? $0.nodes.concat($2): $0.nodes }  }}
+
+    node -> element  : {{ $0 }}
+        | text : {{ $0 }}
+        | comment : {{ null }}
+
+    text -> $text : {{ { text: $0.value } }}
+
+    comment -> $lcomment $text $rcomment : {{ null }}
+
+    element -> elementOpen _ ">" _ xml _ elementClose : {{ { tag: $0.tag, attributes: $0.attributes , nodes: $4.nodes} }}
+        | elementOpen  _ "/" ">" : {{ { tag: $0.tag, attributes: $0.attributes, nodes:[] } }}
+        | elementOpen _ ">"  _ elementClose : {{ { tag: $0.tag, attributes: $0.attributes , nodes: [] } }}
+
+    elementOpen -> "<" $word __ attributes : {{ { tag: $1.value, attributes: $3 } }}
+        | "<" $word : {{ { tag: $1.value, attributes: [] } }}
+    
+    elementClose ->  "<" "/" $word ">" 
+
+    attributes -> kv : {{ { [$0.key]: $0.value } }}
+        | attributes _ kv : {{ { ...$0 ,[$2.key]: $2.value }  }} 
+
+    kv -> $word "=" quoted : {{ { key: $0.value, value: $2 } }}
+        | $word : {{ { key:$0.value , value: '' } }}
+
+    quoted -> $dquote string? $dquote : {{ $1 }}
+
+    string -> $escaped : {{  $0.value }}
+        | $string : {{  $0.value }}
+        | string $escaped : {{ $0 + $1.value }}
+        | string $string : {{ $0 + $1.value }}
+
+    _ -> $space?
+    __ -> $space
+}}
